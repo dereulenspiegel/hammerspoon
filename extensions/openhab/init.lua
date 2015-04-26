@@ -1,7 +1,6 @@
---- === hs.openhab ===
----
---- Control your openhab controlled home
-
+-- === hs.openhab ===
+--
+-- Control your openhab controlled home
 local openhab = {}
 
 local http = require "hs.http"
