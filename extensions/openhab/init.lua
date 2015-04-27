@@ -37,28 +37,41 @@ end
 function server:sendCommand(item, command)
 	headers = {}
 	headers["Content-Type"] = "text/plain"
-	status, data, headers = http.post(self.baseurl.."/rest/items/"..item, command, headers)
-
-	if status ~= 201 then
-		printError(status,data)
-	end
+	hs.http.asyncPost(self.baseurl.."/rest/items/"..item, command, headers, function(status, data, headers)
+		if status ~= 201 then
+			printError(status,data)
+		end
+	end)
 end
 
---- hs.openab:getState(item) -> string
+--- hs.openab:getState(item [,callback]) -> [string]
 --- Method
 --- Retrieves the string representation of the current item state
 ---
 --- Parameters:
 ---  * item - String containing the item name
+---  * callback - callback which received the item status or nil
 --- Returns:
----  * The string representation of the item state or nil
-function server:getState(item)
-	status, data, headers = http.get(self.baseurl.."/rest/items/"..item.."/state")
-	if status == 200 then
-		return data
+---  * The string representation of the item state or nil, only of no
+---    callback is specified
+function server:getState(item, callback)
+	if callback == nil then
+		status, data, headers = http.get(self.baseurl.."/rest/items/"..item.."/state")
+		if status == 200 then
+			return data
+		else
+			printError(status,data)
+			return nil
+		end
 	else
-		printError(status,data)
-		return nil
+		hs.http.asyncGet(elf.baseurl.."/rest/items/"..item.."/state",nil, function(status, data, headers)
+			if status == 200 then
+				callback(data)
+			else
+				printError(status,data)
+				callback(nil)
+			end
+		end)
 	end
 end
 
